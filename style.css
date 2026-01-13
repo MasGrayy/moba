@@ -1,0 +1,49 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    touch-action: none;
+}
+
+body {
+    background: black;
+    overflow: hidden;
+}
+
+#game {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    background: #111;
+}
+
+/* HERO */
+#hero {
+    width: 50px;
+    height: 50px;
+    background: red;
+    position: absolute;
+    left: 150px;
+    top: 150px;
+}
+
+/* JOYSTICK */
+#joystick {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+}
+
+#stick {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    position: absolute;
+    left: 35px;
+    top: 35px;
+}
