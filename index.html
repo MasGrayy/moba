@@ -1,53 +1,56 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mini MOBA</title>
-  <link rel="stylesheet" href="style.css"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOBA Engine</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="viewport">
-  <div id="map">
+<!-- HERO SELECT -->
+<div id="select">
+  <h2>Pilih Hero</h2>
+  <button onclick="startGame('tank')">🛡 Tank</button>
+  <button onclick="startGame('mage')">🔮 Mage</button>
+  <button onclick="startGame('marksman')">🏹 Marksman</button>
+</div>
 
-    <!-- BASE -->
-    <div id="base-player" class="base"></div>
-    <div id="base-enemy" class="base enemy"></div>
+<!-- GAME -->
+<div id="game" class="hide">
+  <div id="viewport">
+    <div id="map">
+      <div id="base-player" class="base"></div>
+      <div id="base-enemy" class="base enemy"></div>
 
-    <!-- HERO -->
-    <div id="hero"></div>
-    <div id="enemy"></div>
+      <div id="hero"></div>
+      <div id="enemy"></div>
 
-    <!-- JUNGLE -->
-    <div id="jungle"></div>
+      <div id="jungle-red" class="jungle"></div>
+      <div id="jungle-blue" class="jungle blue"></div>
 
-    <!-- CONTAINER -->
-    <div id="towers"></div>
-    <div id="minions"></div>
-    <div id="bullets"></div>
+      <div id="towers"></div>
+      <div id="minions"></div>
+      <div id="bullets"></div>
+    </div>
   </div>
-</div>
 
-<!-- UI -->
-<div id="gold">💰 0</div>
-<div id="status"></div>
+  <div id="gold">💰 0</div>
 
-<!-- JOYSTICK -->
-<div id="joystick"><div id="stick"></div></div>
+  <div id="joystick"><div id="stick"></div></div>
 
-<!-- SKILL -->
-<div id="action">
-  <button onclick="useSkill('s1')">⚡</button>
-  <button onclick="useSkill('s2')">🏃</button>
-  <button onclick="useSkill('s3')">💥</button>
-  <button onclick="useSkill('ult')">🔥</button>
-</div>
+  <div id="action">
+    <button onclick="useSkill('s1')">⚡</button>
+    <button onclick="useSkill('s2')">🏃</button>
+    <button onclick="useSkill('s3')">💥</button>
+    <button onclick="useSkill('ult')">🔥</button>
+  </div>
 
-<!-- SHOP -->
-<div id="shop">
-  <button onclick="buyItem(0)">⚔️ Sword</button>
-  <button onclick="buyItem(1)">👢 Boots</button>
+  <div id="shop">
+    <button onclick="buyItem(0)">⚔ Sword</button>
+    <button onclick="buyItem(1)">👢 Boots</button>
+    <button onclick="buyItem(2)">🔮 Tome</button>
+  </div>
 </div>
 
 <script src="game.js"></script>
