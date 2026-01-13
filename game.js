@@ -18,17 +18,15 @@ let enemyHP = 100;
 const HERO_SIZE = 46;
 const SPEED = 4;
 
-/* MAP & SCREEN */
+/* MAP */
 const MAP_W = 2000;
 const MAP_H = 1200;
-const SCREEN_W = window.innerWidth;
-const SCREEN_H = window.innerHeight;
 
-/* CONTROL */
+/* AXIS */
 let axisX = 0;
 let axisY = 0;
 
-/* ================= KEYBOARD ================= */
+/* ================= KEYBOARD (AMAN) ================= */
 document.addEventListener("keydown", e => {
     if (e.key === "ArrowRight") axisX = 1;
     if (e.key === "ArrowLeft") axisX = -1;
@@ -41,50 +39,57 @@ document.addEventListener("keyup", e => {
     if (["ArrowUp", "ArrowDown"].includes(e.key)) axisY = 0;
 });
 
-/* ================= JOYSTICK ================= */
+/* ================= JOYSTICK (FIXED TOTAL) ================= */
 const joystick = document.getElementById("joystick");
 const stick = document.getElementById("stick");
+
 let dragging = false;
 const RADIUS = 40;
 
-joystick.addEventListener("touchstart", () => dragging = true);
+/* WAJIB: nonaktifkan scroll */
+joystick.addEventListener("touchstart", e => {
+    e.preventDefault();
+    dragging = true;
+}, { passive: false });
 
 joystick.addEventListener("touchmove", e => {
+    e.preventDefault();
     if (!dragging) return;
-    const t = e.touches[0];
-    const r = joystick.getBoundingClientRect();
 
-    let dx = t.clientX - (r.left + r.width / 2);
-    let dy = t.clientY - (r.top + r.height / 2);
+    const touch = e.touches[0];
+    const rect = joystick.getBoundingClientRect();
+
+    let dx = touch.clientX - (rect.left + rect.width / 2);
+    let dy = touch.clientY - (rect.top + rect.height / 2);
 
     const dist = Math.hypot(dx, dy);
     if (dist > RADIUS) {
-        dx = dx / dist * RADIUS;
-        dy = dy / dist * RADIUS;
+        dx = (dx / dist) * RADIUS;
+        dy = (dy / dist) * RADIUS;
     }
 
     axisX = dx / RADIUS;
     axisY = dy / RADIUS;
 
-    stick.style.left = 35 + dx + "px";
-    stick.style.top = 35 + dy + "px";
-});
+    stick.style.transform = `translate(${dx}px, ${dy}px)`;
+}, { passive: false });
 
-joystick.addEventListener("touchend", () => {
+joystick.addEventListener("touchend", e => {
+    e.preventDefault();
     dragging = false;
-    axisX = axisY = 0;
-    stick.style.left = "35px";
-    stick.style.top = "35px";
-});
+    axisX = 0;
+    axisY = 0;
+    stick.style.transform = `translate(0, 0)`;
+}, { passive: false });
 
 /* ================= LOOP ================= */
-function loop() {
+function gameLoop() {
     moveHero();
-    camera();
+    cameraFollow();
     combat();
-    requestAnimationFrame(loop);
+    requestAnimationFrame(gameLoop);
 }
-loop();
+gameLoop();
 
 /* ================= HERO MOVE ================= */
 function moveHero() {
@@ -102,9 +107,9 @@ function moveHero() {
 }
 
 /* ================= CAMERA ================= */
-function camera() {
-    const camX = Math.min(0, Math.max(SCREEN_W - MAP_W, -heroX + SCREEN_W / 2));
-    const camY = Math.min(0, Math.max(SCREEN_H - MAP_H, -heroY + SCREEN_H / 2));
+function cameraFollow() {
+    const camX = Math.min(0, Math.max(window.innerWidth - MAP_W, -heroX + window.innerWidth / 2));
+    const camY = Math.min(0, Math.max(window.innerHeight - MAP_H, -heroY + window.innerHeight / 2));
 
     map.style.left = camX + "px";
     map.style.top = camY + "px";
@@ -128,7 +133,6 @@ function combat() {
         heroHPBar.style.width = heroHP + "%";
 
         cooldown = 30;
-
         if (enemyHP <= 0) enemy.style.display = "none";
     }
 
