@@ -3,34 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ML Clone Stable</title>
+<title>ML Mini Clone</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="viewport">
-    <div id="map">
-
-        <!-- HERO -->
-        <div id="hero">
-            <div class="hp">
-                <div id="heroHP"></div>
-            </div>
-        </div>
-
-        <!-- ENEMY -->
-        <div id="enemy">
-            <div class="hp">
-                <div id="enemyHP"></div>
-            </div>
-        </div>
-
-    </div>
+  <div id="map">
+    <div id="hero"></div>
+    <div id="enemyHero"></div>
+    <div id="turret"></div>
+    <div id="minions"></div>
+    <div id="bullets"></div>
+  </div>
 </div>
 
-<!-- JOYSTICK -->
+<div id="gold">💰 0</div>
+
 <div id="joystick">
-    <div id="stick"></div>
+  <div id="stick"></div>
+</div>
+
+<div id="action">
+  <button>⚡</button>
+  <button>⚔️</button>
 </div>
 
 <script src="game.js"></script>
