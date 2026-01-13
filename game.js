@@ -1,52 +1,29 @@
 /* ================= ELEMENT ================= */
 const map = document.getElementById("map");
 const hero = document.getElementById("hero");
-const enemy = document.getElementById("enemy");
 
-const heroHPBar = document.getElementById("heroHP");
-const enemyHPBar = document.getElementById("enemyHP");
-
-/* ================= DATA ================= */
+/* ================= HERO DATA ================= */
 let heroX = 500;
 let heroY = 500;
-let enemyX = 650;
-let enemyY = 500;
-
-let heroHP = 100;
-let enemyHP = 100;
 
 const HERO_SIZE = 46;
-const SPEED = 4;
+const SPEED = 5;
 
-/* MAP */
 const MAP_W = 2000;
 const MAP_H = 1200;
 
-/* AXIS */
-let axisX = 0;
-let axisY = 0;
-
-/* ================= KEYBOARD (AMAN) ================= */
-document.addEventListener("keydown", e => {
-    if (e.key === "ArrowRight") axisX = 1;
-    if (e.key === "ArrowLeft") axisX = -1;
-    if (e.key === "ArrowDown") axisY = 1;
-    if (e.key === "ArrowUp") axisY = -1;
-});
-
-document.addEventListener("keyup", e => {
-    if (["ArrowRight", "ArrowLeft"].includes(e.key)) axisX = 0;
-    if (["ArrowUp", "ArrowDown"].includes(e.key)) axisY = 0;
-});
-
-/* ================= JOYSTICK (FIXED TOTAL) ================= */
+/* ================= JOYSTICK ================= */
 const joystick = document.getElementById("joystick");
 const stick = document.getElementById("stick");
 
 let dragging = false;
+let angle = 0;
+let power = 0;
 const RADIUS = 40;
 
-/* WAJIB: nonaktifkan scroll */
+/* MATIKAN SCROLL TOTAL */
+document.body.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+
 joystick.addEventListener("touchstart", e => {
     e.preventDefault();
     dragging = true;
@@ -63,78 +40,50 @@ joystick.addEventListener("touchmove", e => {
     let dy = touch.clientY - (rect.top + rect.height / 2);
 
     const dist = Math.hypot(dx, dy);
-    if (dist > RADIUS) {
-        dx = (dx / dist) * RADIUS;
-        dy = (dy / dist) * RADIUS;
-    }
+    power = Math.min(dist / RADIUS, 1);
 
-    axisX = dx / RADIUS;
-    axisY = dy / RADIUS;
+    angle = Math.atan2(dy, dx);
 
-    stick.style.transform = `translate(${dx}px, ${dy}px)`;
+    const clampedX = Math.cos(angle) * Math.min(dist, RADIUS);
+    const clampedY = Math.sin(angle) * Math.min(dist, RADIUS);
+
+    stick.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
 }, { passive: false });
 
 joystick.addEventListener("touchend", e => {
     e.preventDefault();
     dragging = false;
-    axisX = 0;
-    axisY = 0;
-    stick.style.transform = `translate(0, 0)`;
+    power = 0;
+    stick.style.transform = "translate(0,0)";
 }, { passive: false });
 
-/* ================= LOOP ================= */
-function gameLoop() {
+/* ================= GAME LOOP ================= */
+function loop() {
     moveHero();
-    cameraFollow();
-    combat();
-    requestAnimationFrame(gameLoop);
+    camera();
+    requestAnimationFrame(loop);
 }
-gameLoop();
+loop();
 
 /* ================= HERO MOVE ================= */
 function moveHero() {
-    heroX += axisX * SPEED;
-    heroY += axisY * SPEED;
+    if (power > 0.05) {
+        heroX += Math.cos(angle) * SPEED * power;
+        heroY += Math.sin(angle) * SPEED * power;
+    }
 
     heroX = Math.max(0, Math.min(MAP_W - HERO_SIZE, heroX));
     heroY = Math.max(0, Math.min(MAP_H - HERO_SIZE, heroY));
 
     hero.style.left = heroX + "px";
     hero.style.top = heroY + "px";
-
-    enemy.style.left = enemyX + "px";
-    enemy.style.top = enemyY + "px";
 }
 
 /* ================= CAMERA ================= */
-function cameraFollow() {
+function camera() {
     const camX = Math.min(0, Math.max(window.innerWidth - MAP_W, -heroX + window.innerWidth / 2));
     const camY = Math.min(0, Math.max(window.innerHeight - MAP_H, -heroY + window.innerHeight / 2));
 
     map.style.left = camX + "px";
     map.style.top = camY + "px";
-}
-
-/* ================= COMBAT ================= */
-let cooldown = 0;
-
-function combat() {
-    if (enemyHP <= 0) return;
-
-    const dx = heroX - enemyX;
-    const dy = heroY - enemyY;
-    const dist = Math.hypot(dx, dy);
-
-    if (dist < 60 && cooldown <= 0) {
-        enemyHP -= 5;
-        heroHP -= 2;
-
-        enemyHPBar.style.width = enemyHP + "%";
-        heroHPBar.style.width = heroHP + "%";
-
-        cooldown = 30;
-        if (enemyHP <= 0) enemy.style.display = "none";
-    }
-
-    if (cooldown > 0) cooldown--;
 }
