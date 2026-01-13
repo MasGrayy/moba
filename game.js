@@ -1,89 +1,135 @@
-/* ================= ELEMENT ================= */
 const map = document.getElementById("map");
 const hero = document.getElementById("hero");
+const enemyHero = document.getElementById("enemyHero");
+const turret = document.getElementById("turret");
+const minionBox = document.getElementById("minions");
+const bulletBox = document.getElementById("bullets");
+const goldUI = document.getElementById("gold");
 
-/* ================= HERO DATA ================= */
-let heroX = 500;
-let heroY = 500;
+/* DATA */
+const MAP_W = 2000, MAP_H = 1200;
+let heroX = 500, heroY = 500;
+let enemyX = 900, enemyY = 500;
+let turretX = 1200, turretY = 500;
+let gold = 0;
 
-const HERO_SIZE = 46;
-const SPEED = 5;
-
-const MAP_W = 2000;
-const MAP_H = 1200;
-
-/* ================= JOYSTICK ================= */
+/* JOYSTICK */
 const joystick = document.getElementById("joystick");
 const stick = document.getElementById("stick");
+let angle = 0, power = 0, dragging = false;
+const R = 40;
 
-let dragging = false;
-let angle = 0;
-let power = 0;
-const RADIUS = 40;
-
-/* MATIKAN SCROLL TOTAL */
-document.body.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+document.body.addEventListener("touchmove", e => e.preventDefault(), { passive:false });
 
 joystick.addEventListener("touchstart", e => {
-    e.preventDefault();
-    dragging = true;
-}, { passive: false });
+  dragging = true;
+}, { passive:false });
 
 joystick.addEventListener("touchmove", e => {
-    e.preventDefault();
-    if (!dragging) return;
+  if (!dragging) return;
+  const t = e.touches[0];
+  const r = joystick.getBoundingClientRect();
+  let dx = t.clientX - (r.left + r.width/2);
+  let dy = t.clientY - (r.top + r.height/2);
+  const d = Math.min(Math.hypot(dx, dy), R);
+  power = d / R;
+  angle = Math.atan2(dy, dx);
+  stick.style.transform = `translate(${Math.cos(angle)*d}px, ${Math.sin(angle)*d}px)`;
+}, { passive:false });
 
-    const touch = e.touches[0];
-    const rect = joystick.getBoundingClientRect();
+joystick.addEventListener("touchend", () => {
+  dragging = false;
+  power = 0;
+  stick.style.transform = "translate(0,0)";
+}, { passive:false });
 
-    let dx = touch.clientX - (rect.left + rect.width / 2);
-    let dy = touch.clientY - (rect.top + rect.height / 2);
+/* MINION */
+let minions = [];
+setInterval(() => {
+  const m = document.createElement("div");
+  m.className = "minion";
+  minionBox.appendChild(m);
+  minions.push({ el:m, x:0, y:600 });
+}, 3000);
 
-    const dist = Math.hypot(dx, dy);
-    power = Math.min(dist / RADIUS, 1);
+/* BULLET */
+let bullets = [];
+function shoot(tx, ty) {
+  const b = document.createElement("div");
+  b.className = "bullet";
+  bulletBox.appendChild(b);
+  bullets.push({ el:b, x:turretX, y:turretY, tx, ty });
+}
 
-    angle = Math.atan2(dy, dx);
-
-    const clampedX = Math.cos(angle) * Math.min(dist, RADIUS);
-    const clampedY = Math.sin(angle) * Math.min(dist, RADIUS);
-
-    stick.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
-}, { passive: false });
-
-joystick.addEventListener("touchend", e => {
-    e.preventDefault();
-    dragging = false;
-    power = 0;
-    stick.style.transform = "translate(0,0)";
-}, { passive: false });
-
-/* ================= GAME LOOP ================= */
+/* GAME LOOP */
 function loop() {
-    moveHero();
-    camera();
-    requestAnimationFrame(loop);
+  moveHero();
+  enemyAI();
+  turretAI();
+  updateMinions();
+  updateBullets();
+  render();
+  camera();
+  requestAnimationFrame(loop);
 }
 loop();
 
-/* ================= HERO MOVE ================= */
+/* LOGIC */
 function moveHero() {
-    if (power > 0.05) {
-        heroX += Math.cos(angle) * SPEED * power;
-        heroY += Math.sin(angle) * SPEED * power;
-    }
+  heroX += Math.cos(angle) * 5 * power;
+  heroY += Math.sin(angle) * 5 * power;
 
-    heroX = Math.max(0, Math.min(MAP_W - HERO_SIZE, heroX));
-    heroY = Math.max(0, Math.min(MAP_H - HERO_SIZE, heroY));
-
-    hero.style.left = heroX + "px";
-    hero.style.top = heroY + "px";
+  heroX = Math.max(0, Math.min(MAP_W-46, heroX));
+  heroY = Math.max(0, Math.min(MAP_H-46, heroY));
 }
 
-/* ================= CAMERA ================= */
-function camera() {
-    const camX = Math.min(0, Math.max(window.innerWidth - MAP_W, -heroX + window.innerWidth / 2));
-    const camY = Math.min(0, Math.max(window.innerHeight - MAP_H, -heroY + window.innerHeight / 2));
+function enemyAI() {
+  const dx = heroX - enemyX;
+  const dy = heroY - enemyY;
+  const d = Math.hypot(dx, dy);
+  if (d > 1 && d < 300) {
+    enemyX += dx / d * 2;
+    enemyY += dy / d * 2;
+  }
+}
 
-    map.style.left = camX + "px";
-    map.style.top = camY + "px";
+function turretAI() {
+  const d = Math.hypot(heroX-turretX, heroY-turretY);
+  if (d < 400 && Math.random() < 0.02) shoot(heroX, heroY);
+}
+
+function updateMinions() {
+  minions.forEach(m => {
+    m.x += 1;
+    m.el.style.transform = `translate(${m.x}px,${m.y}px)`;
+  });
+}
+
+function updateBullets() {
+  bullets.forEach((b, i) => {
+    const dx = b.tx - b.x;
+    const dy = b.ty - b.y;
+    const d = Math.hypot(dx, dy);
+    if (d < 5) {
+      b.el.remove();
+      bullets.splice(i,1);
+      return;
+    }
+    b.x += dx / d * 6;
+    b.y += dy / d * 6;
+    b.el.style.transform = `translate(${b.x}px,${b.y}px)`;
+  });
+}
+
+function render() {
+  hero.style.transform = `translate(${heroX}px,${heroY}px)`;
+  enemyHero.style.transform = `translate(${enemyX}px,${enemyY}px)`;
+  turret.style.transform = `translate(${turretX}px,${turretY}px)`;
+  goldUI.textContent = "💰 " + gold;
+}
+
+function camera() {
+  const cx = Math.min(0, Math.max(innerWidth-MAP_W, -heroX + innerWidth/2));
+  const cy = Math.min(0, Math.max(innerHeight-MAP_H, -heroY + innerHeight/2));
+  map.style.transform = `translate(${cx}px,${cy}px)`;
 }
